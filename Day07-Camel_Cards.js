@@ -1014,6 +1014,7 @@ const HAND_VALUES = {
 }
 
 const CARD_STRENGTHS = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
+const CARD_STRENGTHS_PART_2 = ['J', '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'Q', 'K', 'A']
 
 function camelCards(data) {
   return data.split("\n").map(row => {
@@ -1052,5 +1053,58 @@ function camelCards(data) {
   .reduce((acc, hand, index, arr) => acc + hand.bid * (arr.length - index), 0)
 }
 
-const response = camelCards(DATA)
+function camelCardsPart2(data) {
+  return data.split("\n").map(row => {
+    const [hand, bid] = row.split(" ")
+    let handValue = 41
+    
+    if (hand !== hand[0].repeat(5)){
+      const resume = []
+
+      for (const card of hand.split("")) {
+        const rs = resume.find(i => i.card === card)
+        if (rs) {
+          rs.count++
+        } else {
+          resume.push({
+            card,
+            count : 1
+          })
+        }
+      }
+
+      if (resume.some(c => c.card === "J")) {
+        resume.sort((a, b) => {
+          if (a.card === "J") return 1
+          if (b.card === "J") return -1
+          return b.count - a.count ||
+          CARD_STRENGTHS_PART_2.indexOf(a.card) - CARD_STRENGTHS_PART_2.indexOf(b.card)
+        })
+        console.log(resume);
+        const joker = resume.pop()
+        resume[0].count += joker.count
+      }
+
+      handValue = resume
+        .reduce((acc, curr) => acc * HAND_VALUES[curr.count], 1)
+    }
+    
+    return {
+      hand,
+      bid: +bid,
+      handValue
+    }
+  })
+  .sort((a,b) => (
+    b.handValue - a.handValue ||
+    CARD_STRENGTHS_PART_2.indexOf(b.hand[0]) - CARD_STRENGTHS_PART_2.indexOf(a.hand[0]) ||
+    CARD_STRENGTHS_PART_2.indexOf(b.hand[1]) - CARD_STRENGTHS_PART_2.indexOf(a.hand[1]) ||
+    CARD_STRENGTHS_PART_2.indexOf(b.hand[2]) - CARD_STRENGTHS_PART_2.indexOf(a.hand[2]) ||
+    CARD_STRENGTHS_PART_2.indexOf(b.hand[3]) - CARD_STRENGTHS_PART_2.indexOf(a.hand[3]) ||
+    CARD_STRENGTHS_PART_2.indexOf(b.hand[4]) - CARD_STRENGTHS_PART_2.indexOf(a.hand[4])
+  ))
+  .reduce((acc, hand, index, arr) => acc + hand.bid * (arr.length - index), 0)
+}
+
+const response = camelCardsPart2(DATA)
 console.log(response);
