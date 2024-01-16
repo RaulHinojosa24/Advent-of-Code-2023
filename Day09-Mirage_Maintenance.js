@@ -234,5 +234,37 @@ function mirageMaintenance(data) {
     return result.reduce((acc, curr) => acc + curr,0)
 }
 
-const response = mirageMaintenance(DATA)
+function mirageMaintenancePart2(data) {
+  const result = data.split("\n")
+    .map(row => {
+      const initial = row.split(" ").map(Number)
+      const result = [initial]
+
+      while (!result[0].every(n => n === 0)) {
+        const current = result[0]
+        const newRow = []
+
+        for (let i = 0; i < current.length - 1; i++) {
+          const a = current[i];
+          const b = current[i + 1];
+          newRow.push(b - a)
+        }
+
+        result.unshift(newRow)
+      }
+
+      let prediction = 0
+
+      for (let i = 1; i < result.length; i++) {
+        prediction = result[i][0] - prediction
+      }
+
+      return prediction
+    })
+
+    return result
+      .reduce((acc, curr) => acc + curr,0)
+}
+
+const response = mirageMaintenancePart2(DATA)
 console.log(response);
