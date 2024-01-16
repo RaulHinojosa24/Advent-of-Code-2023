@@ -143,6 +143,16 @@ const TEST_DATA = `..F7.
 SJ.L7
 |F--J
 LJ...`
+const TEST_DATA_2 = `FF7FSF7F7F7F7F7F---7
+L|LJ||||||||||||F--J
+FL-7LJLJ||||||LJL-77
+F--JF--7||LJLJ7F7FJ-
+L---JF-JLJ.||-FJLJJ7
+|F|F-JF---7F7-L7L|7|
+|FFJF7L7F-JF7|JL---7
+7-L-JL7||F7|L7F-7F7|
+L.L7LFJ|||||FJL7||LJ
+L7JLJL-JLJLJL--JLJ.L`
 
 function getNextTile(prevX, prevY, currentX, currentY, direction, maze) {
   if (direction === "start") {
@@ -224,7 +234,7 @@ function getStartingTile(x, y, maze) {
 }
 
 function pipeMaze(data) {
-  const maze = data.split("\n").map(row => row.split(""))
+  const maze = data.split("\n")
   const startPoint = {
     direction: "start",
     y: maze.findIndex(r => r.includes("S"))
@@ -240,13 +250,118 @@ function pipeMaze(data) {
     steps.push(nextTile)
   }
 
-  for (const step of steps) {
-    maze[step.y][step.x] = "#"
-  }
-  console.log(maze);
-
   return (steps.length-1) / 2
 }
 
-const response = pipeMaze(DATA)
+function getPart2StartFig(x, y, maze) {
+  const top = ["|", "7", "F"].includes(maze[y - 1]?.[x]) ? 3 : 1
+  const bottom = ["|", "J", "L"].includes(maze[y + 1]?.[x]) ? 5 : 1
+  const left = ["-", "F", "L"].includes(maze[y]?.[x - 1]) ? 7 : 1
+  const right = ["-", "J", "7"].includes(maze[y]?.[x + 1]) ? 11 : 1
+
+  const dic = {
+    15: "|",
+    21: "J",
+    33: "L",
+    35: "7",
+    55: "F",
+    77: "-"
+  }
+
+  return dic[top * bottom * left * right]
+}
+
+const part2dict = {
+  "J": [" # ", "## ", "   "],
+  "L": [" # ", " ##", "   "],
+  "7": ["   ", "## ", " # "],
+  "F": ["   ", " ##", " # "],
+  "|": [" # ", " # ", " # "],
+  "-": ["   ", "###", "   "],
+  ".": ["   ", " # ", "   "]
+}
+
+function getTargetCount(x, y, target, maze, isSpreading) {
+  const res = []
+
+  if (maze[y - 1]?.[x - 1]?.tile === target) res.push({ x: x - 1, y: y - 1})
+  if (maze[y - 1]?.[x]?.tile === target) res.push({ x: x, y: y - 1})
+  if (maze[y - 1]?.[x + 1]?.tile === target) res.push({ x: x + 1, y: y - 1})
+  if (maze[y]?.[x - 1]?.tile === target) res.push({ x: x - 1, y: y})
+  if (maze[y]?.[x + 1]?.tile === target) res.push({ x: x + 1, y: y})
+  if (maze[y + 1]?.[x - 1]?.tile === target) res.push({ x: x - 1, y: y + 1})
+  if (maze[y + 1]?.[x]?.tile === target) res.push({ x: x, y: y + 1})
+  if (maze[y + 1]?.[x + 1]?.tile === target) res.push({ x: x + 1, y: y + 1})
+
+  if (isSpreading) return res.filter(({x,y}) => maze[y][x].status === undefined)
+
+  return res
+}
+
+function part2CreateNewMaze(maze) {
+  const newMaze = []
+
+  for (let y = 0; y < maze.length; y++) {
+    const row = maze[y];
+
+    let top = ""
+    let mid = ""
+    let bot = ""
+
+    for (let x = 0; x < row.length; x++) {
+      let tile = row[x];
+
+      if (tile === "S") tile = getPart2StartFig(x, y, maze)
+      
+      top += part2dict[tile][0]
+      mid += part2dict[tile][1]
+      bot += part2dict[tile][2]
+    }
+
+    const addProps = (row) => row.split("").map(tile => ({tile, status: undefined }))
+
+    newMaze.push(addProps(top), addProps(mid), addProps(bot))
+  }
+
+  return newMaze
+}
+
+function spreadVirus( maze) {
+  const spreadPoints = [{x: 0, y: 0}]
+
+  while (spreadPoints.length) {
+    const {x, y} = spreadPoints[0]
+    const blankSpaces = getTargetCount(x, y, " ", maze, true)
+    for (const {x, y} of blankSpaces) {
+      maze[y][x].status = false
+    }
+    spreadPoints.push(...blankSpaces)
+    maze[y][x].tile = "~"
+    maze[y][x].status = true
+    spreadPoints.shift()
+  }
+}
+
+function pipeMazePart2(data) {
+  const maze = data.split("\n")
+  const newMaze = part2CreateNewMaze(maze)
+  spreadVirus(newMaze)
+
+  let result = 0
+
+  for (let y = 1; y < newMaze.length; y+=3) {
+    const row = newMaze[y];
+    for (let x = 1; x < row.length; x+=3) {
+      const tile = row[x];
+      
+      const blankSpaces = getTargetCount(x, y, "~", newMaze)
+
+      if (blankSpaces.length === 0) result++
+    }
+  }
+  
+  return result
+}
+
+const response = pipeMazePart2(DATA)
 console.log(response);
