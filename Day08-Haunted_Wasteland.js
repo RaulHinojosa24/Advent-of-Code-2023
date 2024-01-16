@@ -717,11 +717,16 @@ EEE = (EEE, EEE)
 GGG = (GGG, GGG)
 ZZZ = (ZZZ, ZZZ)`
 
-const TEST_DATA_2 = `LLR
+const TEST_DATA_2 = `LR
 
-AAA = (BBB, BBB)
-BBB = (AAA, ZZZ)
-ZZZ = (ZZZ, ZZZ)`
+11A = (11B, XXX)
+11B = (XXX, 11Z)
+11Z = (11B, XXX)
+22A = (22B, XXX)
+22B = (22C, 22C)
+22C = (22Z, 22Z)
+22Z = (22B, 22B)
+XXX = (XXX, XXX)`
 
 function hauntedWasteland(data) {
   const [instructions, _, ...rawNodes] = data.split("\n")
@@ -749,5 +754,53 @@ function hauntedWasteland(data) {
   return steps
 }
 
-const response = hauntedWasteland(DATA)
+function hauntedWastelandPart2(data) {
+  const [instructions, _, ...rawNodes] = data.split("\n")
+  
+  const startingNodes = []
+  const nodes = rawNodes.reduce((acc, node) => {
+    const [current, leftANDright] = node.split(" = ")
+    const [left, right] = leftANDright.match(/\w+/gi)
+    
+    if (current.endsWith("A")) startingNodes.push(current)
+    
+    acc[current] = {L: left, R: right}
+    
+    return acc
+  }, {})
+
+  const results = []
+
+  for (let i = 0; i < startingNodes.length; i++) {
+    for (let steps = 0; steps < Infinity; steps++) {
+      const node = startingNodes[i];
+      
+      const instruction = instructions[steps % instructions.length]
+      const newNode = nodes[node][instruction]
+
+      if (newNode.endsWith("Z")) {
+        results.push(steps + 1)
+        break;
+      }
+
+      startingNodes[i] = newNode
+    }
+  }
+
+  console.log(results);
+  return lcm(results);
+}
+
+function lcm(numbers) {
+  function gcd(a, b) {
+    if (b === 0) {
+      return a;
+    }
+    return gcd(b, a % b);
+  }
+
+  return numbers.reduce((a, b) => a * b / gcd(a, b));
+}
+
+const response = hauntedWastelandPart2(DATA)
 console.log(response);
