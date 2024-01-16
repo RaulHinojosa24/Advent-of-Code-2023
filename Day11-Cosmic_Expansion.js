@@ -182,10 +182,14 @@ function expandCosmos(cosmos) {
     }
   }
 
+  return expandedCosmos
+}
+
+function calcDistanceBetweenGalaxies(cosmos) {
   const galaxies = []
 
-  for (let y = 0; y < expandedCosmos.length; y++) {
-    const row = expandedCosmos[y];
+  for (let y = 0; y < cosmos.length; y++) {
+    const row = cosmos[y];
     for (let x = 0; x < row.length; x++) {
       const el = row[x];
       if (el === "#") galaxies.push({x, y})
@@ -207,6 +211,14 @@ function expandCosmos(cosmos) {
 }
 
 function cosmicExpansion(data) {
+  const cosmos = data.split("\n")
+  const expandedCosmos = expandCosmos(cosmos)
+  const distance = calcDistanceBetweenGalaxies(expandedCosmos)
+
+  return distance
+}
+
+function cosmicExpansionPart2(data) {
   const cosmos = data.split("\n")
   const expandedCosmos = expandCosmos(cosmos)
   
