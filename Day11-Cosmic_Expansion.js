@@ -150,23 +150,23 @@ const TEST_DATA = `...#......
 .......#..
 #...#.....`
 
-function expandCosmos(cosmos) {
-  const expandedCosmos = []
+function getCosmosExpansions(cosmos) {
+  const rows = []
+  const columns = []
 
-  for (let i = 0; i < cosmos.length; i++) {
-    const row = cosmos[i]
+  for (let y = 0; y < cosmos.length; y++) {
+    const row = cosmos[y]
 
-    expandedCosmos.push(row.split(""))
     if (!row.includes("#")) {
-      expandedCosmos.push(row.split(""))
+      rows.push(y)
     }
   }
 
-  for (let x = 0; x < expandedCosmos[0].length; x++) {
+  for (let x = 0; x < cosmos[0].length; x++) {
     let isEmpty = true;
 
-    for (let y = 0; y < expandedCosmos.length; y++) {
-      const el = expandedCosmos[y][x];
+    for (let y = 0; y < cosmos.length; y++) {
+      const el = cosmos[y][x];
       
       if(el === "#") {
         isEmpty = false
@@ -175,18 +175,16 @@ function expandCosmos(cosmos) {
     }
     
     if (isEmpty) {
-      for (let y = 0; y < expandedCosmos.length; y++) {
-        expandedCosmos[y].splice(x, 0, ".")
-      }
-      x++
+      columns.push(x)
     }
   }
 
-  return expandedCosmos
+  return {rows, columns}
 }
 
-function calcDistanceBetweenGalaxies(cosmos) {
+function calcDistanceBetweenGalaxies(cosmos, expansions, amount) {
   const galaxies = []
+  const {rows, columns} = expansions
 
   for (let y = 0; y < cosmos.length; y++) {
     const row = cosmos[y];
@@ -204,6 +202,23 @@ function calcDistanceBetweenGalaxies(cosmos) {
       const {x: bx, y: by} = galaxies[j];
       
       result += Math.abs(ax - bx) + Math.abs(ay - by)
+      const affectedRows = rows.filter(r => (
+        Math.min(ay, by) < r &&
+        Math.max(ay, by) > r
+      )).length
+      const affectedColumns = columns.filter(c => (
+        Math.min(ax, bx) < c &&
+        Math.max(ax, bx) > c
+      )).length
+
+      if(affectedRows) {
+        result -= affectedRows
+        result += (affectedRows * amount)
+      }
+      if(affectedColumns) {
+        result -= affectedColumns
+        result += (affectedColumns * amount)
+      }
     }
   }
 
@@ -212,18 +227,10 @@ function calcDistanceBetweenGalaxies(cosmos) {
 
 function cosmicExpansion(data) {
   const cosmos = data.split("\n")
-  const expandedCosmos = expandCosmos(cosmos)
-  const distance = calcDistanceBetweenGalaxies(expandedCosmos)
+  const expansions = getCosmosExpansions(cosmos)
+  const distance = calcDistanceBetweenGalaxies(cosmos, expansions, 2)
 
   return distance
-}
-
-function cosmicExpansionPart2(data) {
-  const cosmos = data.split("\n")
-  const expandedCosmos = expandCosmos(cosmos)
-  
-
-  return expandedCosmos
 }
 
 const response = cosmicExpansion(DATA)
