@@ -224,7 +224,7 @@ function getStartingTile(x, y, maze) {
 }
 
 function pipeMaze(data) {
-  const maze = data.split("\n")
+  const maze = data.split("\n").map(row => row.split(""))
   const startPoint = {
     direction: "start",
     y: maze.findIndex(r => r.includes("S"))
@@ -239,6 +239,11 @@ function pipeMaze(data) {
     const nextTile = getNextTile(prevX, prevY, currentX, currentY, direction, maze)
     steps.push(nextTile)
   }
+
+  for (const step of steps) {
+    maze[step.y][step.x] = "#"
+  }
+  console.log(maze);
 
   return (steps.length-1) / 2
 }
