@@ -1386,6 +1386,46 @@ function isMirror(map) {
   return -1
 }
 
+function countDiffs(str1, str2) {
+  let count = 0
+  for (let i = 0; i < str1.length; i++) {
+    const char1 = str1[i];
+    const char2 = str2[i];
+    if (char1 !== char2) count++
+  }
+  return count
+}
+
+function isMirrorPart2(map) {
+  
+  for (let i = 0; i < map.length - 1; i++) {
+    let currFixed = false
+    const current = map[i];
+    const next = map[i + 1];
+    const diffs = countDiffs(current, next)
+
+    if(diffs <= 1) {
+      if(diffs === 1) currFixed = true
+      let isMirror = true
+
+      for (let j = 1; j < map.length / 2 && isMirror; j++) {
+        const top = map[i - j]
+        const bot = map[i + 1 + j]
+        
+        if (!top || !bot) break;
+
+        const tbDiffs = countDiffs(top, bot)
+        if (tbDiffs > 1 || (tbDiffs === 1 && currFixed)) isMirror = false
+        else if (tbDiffs && !currFixed) currFixed = true 
+      }
+
+      if (isMirror && currFixed) return i
+    }
+  }
+
+  return -1
+}
+
 function rotateMap(map) {
   const result = []
 
@@ -1417,5 +1457,23 @@ function pointOfIncidence(data) {
   return result
 }
 
-const response = pointOfIncidence(DATA)
+function pointOfIncidencePart2(data) {
+  let result = 0
+  const arrayOfMaps = data.split("\n\n").map(g => g.split("\n"))
+  
+  for (const map of arrayOfMaps) {
+    let reflectionIndex = isMirrorPart2(map)
+    
+    if (reflectionIndex !== -1) result += (reflectionIndex + 1) * 100
+    else {
+      const rotatedMap = rotateMap(map)
+      reflectionIndex = isMirrorPart2(rotatedMap)
+      result += reflectionIndex + 1
+    }
+  }
+
+  return result
+}
+
+const response = pointOfIncidencePart2(DATA)
 console.log(response);
