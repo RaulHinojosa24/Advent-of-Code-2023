@@ -10,5 +10,42 @@ function lensLibrary(data) {
     .reduce((acc, curr) => acc + curr)
 }
 
-const response = lensLibrary(DATA)
+function lensLibraryPart2(data) {
+  const cleanData = data.split(",")
+  const hashMap = {}
+
+  for (const step of cleanData) {
+    const symbol = step.includes("=") ? "=" : "-"
+    const [label, lens] = step.split(symbol)
+    const boxLabel = label.split("").reduce((acc, curr) => ((acc + curr.charCodeAt(0)) * 17) % 256, 0)
+    const box = hashMap[boxLabel]
+
+    if (box && symbol === "-") {
+      hashMap[boxLabel] = box.filter(l => l.label !== label)
+    }
+    if (!box && symbol === "=") {
+      hashMap[boxLabel] = [{
+        label,
+        lens
+      }]
+    }
+    if (box && symbol === "=") {
+      const index = box.findIndex(l => l.label === label)
+      if (index >= 0) box[index].lens = lens
+      else box.push({label, lens})
+    } 
+  }
+
+  let result = 0
+
+  for (const key in hashMap) {
+    const box = hashMap[key];
+    if (!box.length) continue
+    result += box.reduce((acc, curr, idx) => acc + ((+key + 1) * (idx + 1) * +curr.lens) , 0)
+  }
+
+  return result
+}
+
+const response = lensLibraryPart2(DATA)
 console.log(response);
